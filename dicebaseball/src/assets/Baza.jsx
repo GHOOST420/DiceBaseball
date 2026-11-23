@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 /* eslint-disable no-unused-vars */
 function Baza({ baze, setBaze }) {
@@ -7,6 +7,9 @@ function Baza({ baze, setBaze }) {
     const [bacanje, setBacanje] = useState(false);
     const [imePrvog, setImePrvog] = useState("HOME TEAM");
     const [imeDrugog, setImeDrugog] = useState("AWAY TEAM");
+    const [computerTeam, setComputerTeam] = useState(null);
+    const [computerTurnTick, setComputerTurnTick] = useState(0);
+    const computerTurnPending = useRef(false);
     const pozicijePoIndeksu = {
         0: { row: 2, col: 1 }, // bilo (1, 2) -> sada (2, 1)
         1: { row: 1, col: 2 }, // bilo (2, 1) -> sada (1, 2)
@@ -211,27 +214,22 @@ function Baza({ baze, setBaze }) {
                 {
                     const stareBaze = [...baze];
                     const noveBaze = [...baze];
+                    let rez = 0;
 
                     stareBaze.forEach((value, index) => {
                         if (value !== 0) {
-                            if (index !== 3) {
-                                noveBaze[index] -= 1;
-                            }
-
-                            if (index > 2) {
-                                noveBaze[index - 3] += 1;
+                            if (index === 3) {
+                                noveBaze[0] += value;
                             } else {
-                                
-                                let rez = 0;
-                                rez += 1;
-
-                                var stariRez = igrac === true ? rezultat2 : rezultat1;
-                                stariRez += rez;
-                                igrac === true ? setR2(stariRez) : setR1(stariRez);
+                                rez += value;
+                                noveBaze[index] = 0;
                             }
                         }
                     });
 
+                    var stariRez = igrac === true ? rezultat2 : rezultat1;
+                    stariRez += rez;
+                    igrac === true ? setR2(stariRez) : setR1(stariRez);
                     setBaze(noveBaze);
                 }; break;
         }
@@ -240,6 +238,30 @@ function Baza({ baze, setBaze }) {
 
        
     };
+
+    const computerIsAtBat = computerTeam === (igrac ? "AWAY" : "HOME");
+
+    useEffect(() => {
+        if (!computerIsAtBat || GameOVer) {
+            return;
+        }
+
+        if (!bacanje && !computerTurnPending.current) {
+            computerTurnPending.current = true;
+            diceRoll();
+            return;
+        }
+
+        if (computerTurnPending.current && !bacanje && imePoziva) {
+            const moveTimer = setTimeout(() => {
+                runner();
+                computerTurnPending.current = false;
+                setComputerTurnTick((tick) => tick + 1);
+            }, 2000);
+
+            return () => clearTimeout(moveTimer);
+        }
+    }, [computerIsAtBat, GameOVer, bacanje, imePoziva, computerTurnTick]);
      
      return (<>
         <div className="scoreboard">
@@ -265,6 +287,26 @@ function Baza({ baze, setBaze }) {
                 />
             </div>
         </div>
+        <div className="computer-controls">
+            <button
+                className={computerTeam === "HOME" ? "computer-active" : ""}
+                onClick={() => {
+                    computerTurnPending.current = false;
+                    setComputerTeam(computerTeam === "HOME" ? null : "HOME");
+                }}
+            >
+                COMPUTER HOME
+            </button>
+            <button
+                className={computerTeam === "AWAY" ? "computer-active" : ""}
+                onClick={() => {
+                    computerTurnPending.current = false;
+                    setComputerTeam(computerTeam === "AWAY" ? null : "AWAY");
+                }}
+            >
+                COMPUTER AWAY
+            </button>
+        </div>
         <div className="game-status">
             <span className="status-label">STRIKEOUTS</span>
             <div className="outs-indicator">
@@ -273,7 +315,7 @@ function Baza({ baze, setBaze }) {
                 ))}
             </div>
             <span className="turn-label">
-                NA POTEZU: {igrac === false ? imePrvog : imeDrugog}
+                AT BAT: {igrac === false ? imePrvog : imeDrugog}
             </span>
         </div>
         <div id="teren">
@@ -307,10 +349,10 @@ function Baza({ baze, setBaze }) {
           })}
           </div>
       </div>
-      <p>{ imePoziva}</p>
+      <p className="call-result">{imePoziva}</p>
       <div className="game-controls">
-          <button onClick={() => (diceRoll())} disabled={bacanje}>THROW DICES</button>
-          <button onClick={() => (runner())}>MOVE</button>
+          <button onClick={() => (diceRoll())} disabled={bacanje || computerIsAtBat}>THROW DICES</button>
+          <button onClick={() => (runner())} disabled={computerIsAtBat}>MOVE</button>
       </div>
         <div className="dice-container">
             {valDice.map((value, index) => (
