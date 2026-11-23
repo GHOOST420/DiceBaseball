@@ -5,8 +5,10 @@ function Baza({ baze, setBaze }) {
     var nizBaza = baze;
     const [valDice, setValDice] = useState([0, 0])
     const [bacanje, setBacanje] = useState(false);
+    const [moveRequired, setMoveRequired] = useState(false);
     const [imePrvog, setImePrvog] = useState("HOME TEAM");
     const [imeDrugog, setImeDrugog] = useState("AWAY TEAM");
+    const [showRules, setShowRules] = useState(false);
     const [computerTeam, setComputerTeam] = useState(null);
     const [computerTurnTick, setComputerTurnTick] = useState(0);
     const computerTurnPending = useRef(false);
@@ -76,11 +78,13 @@ function Baza({ baze, setBaze }) {
             }
 
             setImePoziva(imeNapada);
+            setMoveRequired(imeNapada !== "WALK");
             setBacanje(false);
         }, 700);
     }
 
     var runner = () => {
+        setMoveRequired(false);
         console.log(devetinaPoints);
         switch (imePoziva)
         {
@@ -286,6 +290,17 @@ function Baza({ baze, setBaze }) {
                     aria-label="Ime drugog tima"
                 />
             </div>
+            <div className="game-status">
+                <span className="status-label">STRIKEOUTS</span>
+                <div className="outs-indicator">
+                    {ispad.map((value, index) => (
+                        <span className={`out-dot ${value ? "checked" : ""}`} key={index} />
+                    ))}
+                </div>
+                <span className="turn-label">
+                    AT BAT: {igrac === false ? imePrvog : imeDrugog}
+                </span>
+            </div>
         </div>
         <div className="computer-controls">
             <button
@@ -306,17 +321,6 @@ function Baza({ baze, setBaze }) {
             >
                 COMPUTER AWAY
             </button>
-        </div>
-        <div className="game-status">
-            <span className="status-label">STRIKEOUTS</span>
-            <div className="outs-indicator">
-                {ispad.map((value, index) => (
-                    <span className={`out-dot ${value ? "checked" : ""}`} key={index} />
-                ))}
-            </div>
-            <span className="turn-label">
-                AT BAT: {igrac === false ? imePrvog : imeDrugog}
-            </span>
         </div>
         <div id="teren">
       <div id="baze" >
@@ -351,7 +355,7 @@ function Baza({ baze, setBaze }) {
       </div>
       <p className="call-result">{imePoziva}</p>
       <div className="game-controls">
-          <button onClick={() => (diceRoll())} disabled={bacanje || computerIsAtBat}>THROW DICES</button>
+          <button onClick={() => (diceRoll())} disabled={bacanje || computerIsAtBat || moveRequired}>THROW DICES</button>
           <button onClick={() => (runner())} disabled={computerIsAtBat}>MOVE</button>
       </div>
         <div className="dice-container">
@@ -389,6 +393,36 @@ function Baza({ baze, setBaze }) {
                 </tr>
             </tbody>
         </table>
+
+        <button
+            className="rules-toggle"
+            onClick={() => setShowRules(!showRules)}
+        >
+            {showRules ? "HIDE ROLLS AND RESULTS" : "SHOW ROLLS AND RESULTS"}
+        </button>
+        {showRules && (
+            <section className="rules-section">
+                <h2>ROLLS AND RESULTS</h2>
+                <div className="rules-table">
+                    <div className="rules-header">
+                        <span>DICE ROLLS AND RESULTS</span>
+                    </div>
+                    {Object.entries(tabela).map(([pair, result]) => {
+                        const [firstDie, secondDie] = pair.split(":");
+
+                        return (
+                            <div className="rules-row" key={pair}>
+                                <div className="rule-dice">
+                                    <span className="rule-die">{firstDie}</span>
+                                    <span className="rule-die">{secondDie}</span>
+                                </div>
+                                <strong className="rule-result">{result}</strong>
+                            </div>
+                        );
+                    })}
+                </div>
+            </section>
+        )}
   </>
   );
 }
