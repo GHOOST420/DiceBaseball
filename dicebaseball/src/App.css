@@ -5,7 +5,7 @@
     gap: 56px; /* razmak između ćelija */
     width:30%;
     margin-left:34.5%;
-    margin-top:20%
+    margin-top:18.5%
 }
 #teren {
     background-image: url('./assets/teren.png');
@@ -17,13 +17,21 @@
 .bazica {
     background-color: white;
     width:110%;
-    height:110%;
-    transition: background-color 0.3s ease;
+    height:210%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.45));
+    color: #1d2730;
+    font-weight: bold;
+    transition: background-color 0.3s ease, filter 0.3s ease;
 }
 
-    .bazica.zauzeta-baza {
-        background-color: #f4c95d;
-    }
+.bazica.zauzeta-baza {
+    background-color: #f4c95d;
+    filter: drop-shadow(0 0 7px rgba(244, 201, 93, 0.9));
+}
 
 button {
     background-color: #1d2730;
@@ -238,5 +246,100 @@ button:disabled {
     }
     100% {
         transform: translateY(0) rotate(360deg);
+    }
+}
+
+@media (max-width: 700px) {
+    #teren {
+        height: clamp(360px, 100vw, 500px);
+    }
+
+    #baze {
+        width: 52%;
+        margin-left: 24%;
+        margin-top: 16%;
+        gap: clamp(24px, 7vw, 56px);
+    }
+
+    .bazica {
+        height: 170%;
+    }
+
+    .scoreboard {
+        width: 94%;
+        gap: 10px;
+        padding: 12px 10px;
+    }
+
+    .team-score {
+        gap: 7px;
+    }
+
+    .team-name {
+        width: 100px;
+        padding: 6px 5px;
+        font-size: 12px;
+    }
+
+    .scoreboard-center {
+        padding: 6px 8px;
+        font-size: 10px;
+    }
+
+    .game-status {
+        flex-wrap: wrap;
+        padding: 0 12px;
+    }
+
+    .turn-label {
+        width: 100%;
+        margin: 3px 0 0;
+        text-align: center;
+    }
+
+    .score-table {
+        display: block;
+        width: 92%;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .scoreboard {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .scoreboard-center {
+        grid-column: 1 / -1;
+        grid-row: 1;
+    }
+
+    .team-score {
+        grid-row: 2;
+    }
+
+    .team-name {
+        width: 82px;
+    }
+
+    .team-score strong {
+        min-width: 25px;
+        font-size: 25px;
+    }
+
+    .game-controls {
+        gap: 6px;
+    }
+
+    button {
+        padding: 8px 11px;
+        font-size: 12px;
+    }
+
+    .dice {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
     }
 }
